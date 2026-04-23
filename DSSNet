@@ -32,7 +32,6 @@ class BSCM(nn.Module):
         self.down2 = nn.AvgPool2d(2, 2)
         self.sa = SpikingSpatialAttention()
         self.ca = SpikingChannelAttention(in_channels//2,ratio=16)
-        self.fpu = FourierFPU(in_channels//2,in_channels//2)
         self.Hfpu = HighFPU(in_channels//2,in_channels//2)
         self.Lfpu = LowFPU(in_channels//2,in_channels//2)
         self.channel = in_channels
@@ -49,9 +48,7 @@ class BSCM(nn.Module):
         f5_1, f5_2 = f5.chunk(2, dim=1)
         f5_ca = self.ca(f5_1)
         f5_fpu = self.Hfpu(f5_ca)
-        # f5d = self.sa(f5_2)
-        # wf5d = torch.sigmoid(f5d)
-        # f5_sa = f5_2 * wf5d
+
         f5_3 = self.conv_4(torch.cat([f5_ca, f5_fpu], dim=1))
 
         f4_2 = self.conv_2(torch.cat([f4_3, self.upsample2(f5_3)], dim=1))
@@ -102,7 +99,6 @@ class DSSNet(nn.Module):
         self.upsample16 = nn.Upsample(scale_factor=16, mode='bilinear', align_corners=True)
         self.upsample32 = nn.Upsample(scale_factor=32, mode='bilinear', align_corners=True)
 
-
         self.Correlation4 = SCIM(channel_decoder)
         self.Correlation3 = SCIM(channel_decoder)
         self.Correlation2 = SCIM(channel_decoder)
@@ -115,7 +111,6 @@ class DSSNet(nn.Module):
         self.enhance1= SHSM(channel_decoder)
         self.enhance2 = SHSM(channel_decoder)
         self.enhance3 = SHSM(channel_decoder)
-        self.enhance4 = SHSM(channel_decoder)
     def load_pre(self, pre_model):
 
         pretrained_dict = torch.load(pre_model, weights_only=False)
